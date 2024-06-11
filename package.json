@@ -17,6 +17,10 @@
     "download",
     "file"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/about14sheep/az-blob-readstream"
+  },
   "author": "Austin Burger <aburger91@gmail.com> (https://austinburger.dev)",
   "license": "MIT",
   "devDependencies": {
