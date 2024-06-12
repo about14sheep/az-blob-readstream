@@ -32,6 +32,55 @@ export class BlobReadstream extends Readable {
     this.range = byteRange || 64 * 1024;
     this.blobDownloadToBufferOptions = downloadToBufferOptions;
   }
+  
+  private drainBuffer() {
+    while(this.read());
+  }
+  
+  /**
+  * Adjust size of byte range to grab in `downloadToBuffer` call
+  *
+  * @param {number} bytes - Numnber of bytes to set for range
+  **/
+  adjustByteRange(bytes: number) {
+    this.range = bytes;
+  }
+
+  /**
+  * Drains the internal buffer and
+  * moves cursor bytes length back in the file
+  *
+  * If current position - number of bytes to move back
+  * is <= 0, set cursor at beginning of file
+  *
+  * @param {number} bytes - Number of bytes to subtract from cursor (defaults to range)
+  **/
+  moveCursorBack(bytes: number = this.range) {
+    this.drainBuffer();
+    if (this.curr - bytes > 0) {
+      this.curr -= bytes;
+    } else {
+      this.curr = 0;
+    }
+  }
+  
+  /**
+  * Drains the internal buffer and
+  * moves cursor bytes length forward in the file
+  *
+  * If current cursor position + number of bytes to move forward
+  * is greater than the length of the file, set cursor at end of file
+  *
+  * @param {number} bytes - Number of bytes to add to the cursor (defaults to range)
+  **/
+  moveCursorForward(bytes: number = this.range) {
+    this.drainBuffer();
+    if (this.curr + bytes <= this.contentLength) {
+      this.curr += bytes;
+    } else {
+      this.curr += this.contentLength + 1;
+    }
+  }
 
   async _read(): Promise<void> {
     if (this.curr >= this.contentLength) {
