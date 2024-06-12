@@ -1,4 +1,5 @@
 src
+.github
 .gitignore
 tsconfig.json
 package-lock.json
