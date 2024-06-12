@@ -4,7 +4,7 @@ import { Readable, type ReadableOptions } from "stream";
 export type BlobReadstreamParameters = {
   blobClient: BlobClient;
   contentLength: number;
-  byteRange: number;
+  byteRange?: number;
   downloadToBufferOptions?: BlobDownloadToBufferOptions;
 }
 
@@ -29,12 +29,12 @@ export class BlobReadstream extends Readable {
 
     this.blobClient = blobClient;
     this.contentLength = contentLength;
-    this.range = byteRange;
+    this.range = byteRange || 64 * 1024;
     this.blobDownloadToBufferOptions = downloadToBufferOptions;
   }
 
   async _read(): Promise<void> {
-    if (this.curr > this.contentLength) {
+    if (this.curr >= this.contentLength) {
       this.push(null);
     } else {
       try {
@@ -47,7 +47,7 @@ export class BlobReadstream extends Readable {
           this.blobDownloadToBufferOptions
         );
 
-        this.curr += requestRange + 1;
+        this.curr += buff.byteLength;
         this.push(buff);
       } catch (error: unknown) {
         this.destroy(error as Error);
