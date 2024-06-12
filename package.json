@@ -6,9 +6,9 @@
   "types": "dist/BlobReadstream.d.js",
   "scripts": {
     "clean": "rm -rd dist",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc"
   },
-  "keywords": {
+  "keywords": [
     "@azure/storage-blob",
     "azure",
     "blob-storage",
@@ -16,7 +16,7 @@
     "readable",
     "download",
     "file"
-  },
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/about14sheep/az-blob-readstream"
