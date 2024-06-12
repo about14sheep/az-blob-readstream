@@ -27,18 +27,31 @@ const serviceClient = BlobServiceClient.fromConnectionString(CONNECTION_STRING);
 const containerClient = serviceClient.getContainerClient("<container name>");
 const blobClient = containerClient.getBlobClient("<blob name>");
 
+// Get metadata properties so we know the size of the file
+const metadata = await blobClient.getProperties();
+
 // Create BlobReadstream object instead of calling the blob clients download method.
-const stream = new BlobReadstream(blobClient);
+const parameters = {
+ blobClient, // Pass in the blobClient
+ contentLength: metadata.contentLength, // The length of the file being read
+ byteRange: 1024 * 1024 // Amount of bytes in each chunk (optional - defaults to 64 KiB)
+}
+const stream = new BlobReadstream(parameters);
 ```
 
 ### Configuring Azure Blob Storage `BlobDownloadToBufferOptions`
 The `downloadToBufferOptions` parameter allows you to pass in any [`BlobDownloadToBufferOptions`](https://learn.microsoft.com/en-us/javascript/api/%40azure/storage-blob/blobdownloadtobufferoptions?view=azure-node-latest) to the Azure Blob Storage `downloadToBuffer` method.
 ```js
-const options = {
- maxRetryRequestPerBlock: 10
+const parameters = {
+ blobClient,
+ contentLength,
+ byteRange,
+ downloadToBufferOptions: {
+  maxRetryRequestPerBlock: 10
+ }
 };
 
-const stream = new BlobReadstream(blobClient, options);
+const stream = new BlobReadstream(parameters);
 ```
 Just like in the `@azure/storage-blob` sdk, omitting this perameter will default all values in `BlobDownloadToBufferOptions`.
 
@@ -60,4 +73,14 @@ const gzip = createGunzip();
 // pipe into gzip to unzip files as you stream!
 stream.pipe(gzip);
 ```
+## API
+### `BlobReadstream(parameters: BlobReadstreamParameters)`
+Instantiates a new `BlobReadstream` object.
 
+Parameters:
+* `parameters` (BlobReadstreamParameters) - Container object to hold parameters
+  * `parameters.blobClient` ([BlobClient](https://learn.microsoft.com/en-us/javascript/api/@azure/storage-blob/blobclient?view=azure-node-latest)) - Azure Blob Storage Blob Client
+  * `parameters.contantLength` (number) - Size of file to download
+  * `parameters.byteRange` (number) - (optional) Range of bytes to grab in each `downloadToBuffer` call (defaults to 64 KiB)
+  * `parameters.downloadToBufferOptions` ([BlobDownloadToBufferOptions](https://learn.microsoft.com/en-us/javascript/api/%40azure/storage-blob/blobdownloadtobufferoptions?view=azure-node-latest)) - (optional) Options to pass to `downloadToBuffer` call
+* `nodeReadableStreamOptions` ([ReadableOptions](https://nodejs.org/api/stream.html#new-streamreadableoptions)) - (optional) NodeJs Readable options to pass to super call
