@@ -5,8 +5,7 @@
   "main": "dist/BlobReadstream.js",
   "types": "dist/BlobReadstream.d.js",
   "scripts": {
-    "clean": "rm -rd dist",
-    "build": "npm run clean && tsc"
+    "build": "tsc"
   },
   "keywords": [
     "@azure/storage-blob",
