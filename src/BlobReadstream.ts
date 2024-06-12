@@ -37,6 +37,14 @@ export class BlobReadstream extends Readable {
     while(this.read());
   }
   
+  private getRequestRange() {
+    if (this.curr + this.range > this.contentLength) {
+      return this.contentLength - this.curr;
+    }
+
+    return this.range;
+  }
+
   /**
   * Adjust size of byte range to grab in `downloadToBuffer` call
   *
@@ -102,13 +110,5 @@ export class BlobReadstream extends Readable {
         this.destroy(error as Error);
       }
     }
-  }
-
-  getRequestRange() {
-    if (this.curr + this.range > this.contentLength) {
-      return this.contentLength - this.curr;
-    }
-
-    return this.range;
   }
 }
