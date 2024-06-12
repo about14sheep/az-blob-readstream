@@ -4,7 +4,7 @@ Azure Blob Storage Read Stream made easy
 Simple wrapper around [Azure BlobClient `downloadToBuffer` method](https://learn.microsoft.com/en-us/javascript/api/@azure/storage-blob/blobclient?view=azure-node-latest#@azure-storage-blob-blobclient-downloadtobuffer-1) allowing intuitive and stable streaming.
   * ZERO Dependencies
   * Simple interface for streaming any size file from an Azure Blob Storage container
-  * Automatically retry failed file chunks
+  * Easily change speed and move cursor forward/backwards in the file
   * All of the functionality you love with NodeJS Readable streams
   * Handles unresolved issue [Download from Blob storage gets stuck sometimes and never completes](https://github.com/Azure/azure-sdk-for-js/issues/22321)
 
@@ -55,6 +55,24 @@ const stream = new BlobReadstream(parameters);
 ```
 Just like in the `@azure/storage-blob` sdk, omitting this perameter will default all values in `BlobDownloadToBufferOptions`.
 
+### Adjusting the read stream
+To adjust the range of bytes grabbed from Azure Blob Storage:
+```js
+// You can adjust the range at any point during the stream (adjusting the speed)
+stream.adjustByteRange(1024 * 1024 * 5); // 5 MiB
+```
+To adjust cursor position:
+```js
+// You can move the cursor forwards to skip ahead (or back) in the file
+// By default, the stream will skip ahead by the current Range
+stream.moveCursorForward();
+stream.moveCursorBack();
+
+// Both of these methods also take in a `bytes` parameter for finer control
+stream.moveCursorForward(10 * 1024); // Move cursor forward 10 KiB in file
+stream.moveCursorBack(5 * 1024); // Move cursor back 5 KiB in file
+```
+
 ### Inherited features from NodeJS Readable class
 You can alse use this `BlobReadstream` like any other [NodeJS Readable stream](https://nodejs.org/api/stream.html#readable-streams), setting an event listener is exactly the same:
 ```js
@@ -84,3 +102,20 @@ Parameters:
   * `parameters.byteRange` (number) - (optional) Range of bytes to grab in each `downloadToBuffer` call (defaults to 64 KiB)
   * `parameters.downloadToBufferOptions` ([BlobDownloadToBufferOptions](https://learn.microsoft.com/en-us/javascript/api/%40azure/storage-blob/blobdownloadtobufferoptions?view=azure-node-latest)) - (optional) Options to pass to `downloadToBuffer` call
 * `nodeReadableStreamOptions` ([ReadableOptions](https://nodejs.org/api/stream.html#new-streamreadableoptions)) - (optional) NodeJs Readable options to pass to super call
+### `adjustByteRange(bytes: number)`
+Adjusts the `BlobReadstream.range` property. Can be used to slow down or speed up the stream by grabbing a smaller or larger range of bytes.
+
+Parameter:
+* `bytes` (number) - New range of bytes to set
+### `moveCursorForward(bytes: number)`
+Drains the internal buffer and adjusts the `BlobReadstream.curr` property moving the cursor forward `bytes` amount.
+If current cursor position + number of bytes to move forward is > the length of the file, set cursor at end of file 
+
+Parameter:
+* `bytes` (number) - (optional) Number of bytes to move forward (defaults to current range)
+### `moveCursorBack(bytes: number)`
+Drains the internal buffer and adjusts the `BlobReadstream.curr` property moving the cursor back `bytes` amount.
+If current cursor position - number of bytes to move back is <= 0, set cursor at begining of file
+
+Parameter:
+* `bytes` (number) - (optional) Number of bytes to move forward (defaults to current range)
