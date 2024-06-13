@@ -1,6 +1,6 @@
 {
   "name": "az-blob-readstream",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Zero dependency wrapper to stream files from an Azure Blob Storage container",
   "main": "dist/BlobReadstream.js",
   "types": "dist/BlobReadstream.d.js",
